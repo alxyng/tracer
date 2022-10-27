@@ -29,8 +29,8 @@ type HTTPTransport struct {
 
 func (t *HTTPTransport) Register() {
 	t.router.HandleFunc("/reading", t.createHandler(controller.TopicGetReading)).Methods(http.MethodPost)
-	t.router.HandleFunc("/getTime", t.createHandler(controller.TopicGetSystemTime)).Methods(http.MethodPost)
-	t.router.HandleFunc("/setTime", t.createHandler(controller.TopicSetSystemTime)).Methods(http.MethodPost)
+	t.router.HandleFunc("/getSystemTime", t.createHandler(controller.TopicGetSystemTime)).Methods(http.MethodPost)
+	t.router.HandleFunc("/setSystemTime", t.createHandler(controller.TopicSetSystemTime)).Methods(http.MethodPost)
 	t.router.HandleFunc("/getBatteryInformation", t.createHandler(controller.TopicGetBatteryInformation)).Methods(http.MethodPost)
 	t.router.HandleFunc("/setBatteryCapacity", t.createHandler(controller.TopicSetBatteryCapacity)).Methods(http.MethodPost)
 }
