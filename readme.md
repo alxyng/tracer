@@ -134,5 +134,14 @@ CREATE TABLE readings(
   read_duration interval NOT NULL,
   time timestamp NOT NULL
 );
+CREATE INDEX readings_time_idx ON readings (time);
+
+CREATE TABLE daily_energy(
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  generated_energy NUMERIC(32, 16) NOT NULL,
+  consumed_energy NUMERIC(32, 16) NOT NULL,
+  time timestamp NOT NULL
+);
+CREATE UNIQUE INDEX daily_energy_time_idx ON daily_energy (time);
 ```
 

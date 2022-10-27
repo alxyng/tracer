@@ -48,7 +48,8 @@ func main() {
 		log.Fatal("error connecting to mqtt", zap.Error(token.Error()))
 	}
 
-	writer := writer.NewSQLWriter(conn)
+	w1 := writer.NewSQLWriter(conn, logger)
+	w2 := writer.NewSQLAggregateWriter(conn, logger)
 
 	handler := func(client mqtt.Client, msg mqtt.Message) {
 		var reading controller.Reading
@@ -56,8 +57,12 @@ func main() {
 			logger.Error("error unmarshalling reading", zap.Error(err))
 		}
 
-		if err := writer.Write(ctx, reading); err != nil {
-			logger.Error("error inserting reading", zap.Error(err))
+		if err := w1.Write(ctx, reading); err != nil {
+			logger.Error("error writing", zap.String("writer", "w1"), zap.Error(err))
+		}
+
+		if err := w2.Write(ctx, reading); err != nil {
+			logger.Error("error writing", zap.String("writer", "w2"), zap.Error(err))
 		}
 	}
 
