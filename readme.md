@@ -25,7 +25,7 @@ I'm using the [RS485 Serial HAT](https://thepihut.com/products/rs422-rs485-seria
 
 ### MQTT
 
-All services communicate using MQTT. At a minimum, this is required to run `tracer-controller`.
+All services communicate using MQTT. At a minimum, this is required to run `tracer-controller`. [Click here](https://pimylifeup.com/raspberry-pi-mosquitto-mqtt-server/) for instructions on installing an MQTT server.
 
 ### PostgreSQL and Grafana
 
