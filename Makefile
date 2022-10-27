@@ -47,6 +47,8 @@ cycle-api: build stop-api deploy-api start-api status-api
 cycle-controller: build stop-controller deploy-controller start-controller status-controller
 cycle-writer: build stop-writer deploy-writer start-writer status-writer
 cycle: cycle-api cycle-controller cycle-writer
+logs:
+	ssh $(RPI_ADDR) "journalctl -f -u tracer.api.service -u tracer.controller.service -u tracer.writer.service"
 
 .PHONY: build enable disable
 .PHONY: deploy-api deploy-controller deploy-writer
