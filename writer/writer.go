@@ -2,6 +2,7 @@ package writer
 
 import (
 	"context"
+	"sync/atomic"
 
 	"github.com/alxyng/tracer/controller"
 	"github.com/jackc/pgx/v5"
@@ -10,18 +11,21 @@ import (
 
 type Writer interface {
 	Write(ctx context.Context, reading *controller.Reading) error
+	NumWrites() uint64
 }
 
 func NewSQLWriter(conn *pgx.Conn, logger *zap.Logger) *SQLWriter {
 	return &SQLWriter{
 		conn:   conn,
 		logger: logger,
+		writes: 0,
 	}
 }
 
 type SQLWriter struct {
 	conn   *pgx.Conn
 	logger *zap.Logger
+	writes uint64
 }
 
 func (w *SQLWriter) Write(ctx context.Context, reading controller.Reading) error {
@@ -57,13 +61,23 @@ func (w *SQLWriter) Write(ctx context.Context, reading controller.Reading) error
 		reading.Duration,
 		reading.EndTime,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	atomic.AddUint64(&w.writes, 1)
+	return nil
+}
+
+func (w *SQLWriter) NumWrites() uint64 {
+	return atomic.LoadUint64(&w.writes)
 }
 
 func NewSQLAggregateWriter(conn *pgx.Conn, logger *zap.Logger) *SQLAggregateWriter {
 	return &SQLAggregateWriter{
 		conn:   conn,
 		logger: logger,
+		writes: 0,
 	}
 }
 
@@ -71,6 +85,7 @@ type SQLAggregateWriter struct {
 	conn   *pgx.Conn
 	logger *zap.Logger
 	last   controller.Reading
+	writes uint64
 }
 
 func (w *SQLAggregateWriter) Write(ctx context.Context, reading controller.Reading) error {
@@ -100,7 +115,16 @@ func (w *SQLAggregateWriter) Write(ctx context.Context, reading controller.Readi
 		consumedEnergy,
 		reading.EndTime,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	atomic.AddUint64(&w.writes, 1)
+	return nil
+}
+
+func (w *SQLAggregateWriter) NumWrites() uint64 {
+	return atomic.LoadUint64(&w.writes)
 }
 
 func (w *SQLAggregateWriter) hasLastReading() bool {

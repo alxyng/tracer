@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/alxyng/tracer/controller"
 	"github.com/alxyng/tracer/internal/config"
 	"github.com/alxyng/tracer/writer"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 )
@@ -45,7 +47,7 @@ func main() {
 
 	mqttClient := mqtt.NewClient(opts)
 	if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-		log.Fatal("error connecting to mqtt", zap.Error(token.Error()))
+		logger.Fatal("error connecting to mqtt", zap.Error(token.Error()))
 	}
 
 	w1 := writer.NewSQLWriter(conn, logger)
@@ -55,6 +57,7 @@ func main() {
 		var reading controller.Reading
 		if err := json.Unmarshal(msg.Payload(), &reading); err != nil {
 			logger.Error("error unmarshalling reading", zap.Error(err))
+			return
 		}
 
 		if err := w1.Write(ctx, reading); err != nil {
@@ -70,7 +73,24 @@ func main() {
 		logger.Fatal("error subscribing to mqtt topic", zap.String("topic", "tracer/reading"), zap.Error(token.Error()))
 	}
 
-	for {
-		time.Sleep(1 * time.Second)
+	router := mux.NewRouter()
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		pgOk := true
+		if err := conn.Ping(r.Context()); err != nil {
+			logger.Error("error pinging database", zap.Error(err))
+			pgOk = false
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{
+  "w1Writes": %v,
+  "w2Writes": %v,
+  "mqttConnected": %v,
+  "mqttConnectionOpen": %v,
+  "pgOk": %v
+}`, w1.NumWrites(), w2.NumWrites(), mqttClient.IsConnected(), mqttClient.IsConnectionOpen(), pgOk)
+	})
+	if err := http.ListenAndServe(":3002", router); err != nil {
+		logger.Error("error listening", zap.Error(err))
 	}
 }
