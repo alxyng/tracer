@@ -49,12 +49,13 @@ Create `/etc/systemd/system/tracer.api.service`:
 ```ini
 [Unit]
 After=network.target
-StartLimitIntervalSec=30
+StartLimitIntervalSec=60
 StartLimitBurst=5
 
 [Service]
 ExecStart=/home/pi/tracer/api
 Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
@@ -65,12 +66,13 @@ Create `/etc/systemd/system/tracer.controller.service`:
 ```ini
 [Unit]
 After=network.target
-StartLimitIntervalSec=30
+StartLimitIntervalSec=60
 StartLimitBurst=5
 
 [Service]
 ExecStart=/home/pi/tracer/controller
 Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
@@ -81,13 +83,14 @@ Create `/etc/systemd/system/tracer.writer.service`, making sure to change the va
 ```ini
 [Unit]
 After=network.target postgresql.service
-StartLimitIntervalSec=30
+StartLimitIntervalSec=60
 StartLimitBurst=5
 
 [Service]
 Environment=TRACER_DATABASE_DSN=postgres://username:password@host:5432/database
 ExecStart=/home/pi/tracer/writer
 Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
