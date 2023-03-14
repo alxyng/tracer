@@ -8,31 +8,31 @@ import (
 
 	"github.com/alxyng/tracer/controller"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
-func NewHTTPTransport(router *mux.Router, mqttClient mqtt.Client, logger *zap.Logger) *HTTPTransport {
+func NewHTTPTransport(engine *gin.Engine, mqttClient mqtt.Client, logger *zap.Logger) *HTTPTransport {
 	return &HTTPTransport{
-		router:     router,
+		engine:     engine,
 		mqttClient: mqttClient,
 		logger:     logger,
 	}
 }
 
 type HTTPTransport struct {
-	router     *mux.Router
+	engine     *gin.Engine
 	mqttClient mqtt.Client
 	logger     *zap.Logger
 }
 
 func (t *HTTPTransport) Register() {
-	t.router.HandleFunc("/reading", t.createHandler(controller.TopicGetReading)).Methods(http.MethodPost)
-	t.router.HandleFunc("/getSystemTime", t.createHandler(controller.TopicGetSystemTime)).Methods(http.MethodPost)
-	t.router.HandleFunc("/setSystemTime", t.createHandler(controller.TopicSetSystemTime)).Methods(http.MethodPost)
-	t.router.HandleFunc("/getBatteryInformation", t.createHandler(controller.TopicGetBatteryInformation)).Methods(http.MethodPost)
-	t.router.HandleFunc("/setBatteryCapacity", t.createHandler(controller.TopicSetBatteryCapacity)).Methods(http.MethodPost)
+	t.engine.POST("/reading", gin.WrapF(t.createHandler(controller.TopicGetReading)))
+	t.engine.POST("/getSystemTime", gin.WrapF(t.createHandler(controller.TopicGetSystemTime)))
+	t.engine.POST("/setSystemTime", gin.WrapF(t.createHandler(controller.TopicSetSystemTime)))
+	t.engine.POST("/getBatteryInformation", gin.WrapF(t.createHandler(controller.TopicGetBatteryInformation)))
+	t.engine.POST("/setBatteryCapacity", gin.WrapF(t.createHandler(controller.TopicSetBatteryCapacity)))
 }
 
 func (t *HTTPTransport) createHandler(topic string) http.HandlerFunc {

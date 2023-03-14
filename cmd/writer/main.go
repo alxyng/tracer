@@ -11,10 +11,13 @@ import (
 	"github.com/alxyng/tracer/internal/config"
 	"github.com/alxyng/tracer/writer"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/gorilla/mux"
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
 )
+
+const ServiceName = "tracer-writer"
 
 func main() {
 	ctx := context.Background()
@@ -40,8 +43,8 @@ func main() {
 	// mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	// mqtt.ERROR = log.New(os.Stdout, "", 0)
 	opts := mqtt.NewClientOptions().
-		AddBroker("tcp://localhost:1883").
-		SetClientID("tracer-writer").
+		AddBroker(cfg.MQTT.Broker).
+		SetClientID(ServiceName).
 		SetKeepAlive(2 * time.Second).
 		SetPingTimeout(1 * time.Second)
 
@@ -73,8 +76,12 @@ func main() {
 		logger.Fatal("error subscribing to mqtt topic", zap.String("topic", "tracer/reading"), zap.Error(token.Error()))
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+	router.Use(ginzap.RecoveryWithZap(logger, true))
+
+	router.GET("/", gin.WrapF(func(w http.ResponseWriter, r *http.Request) {
 		pgOk := true
 		if err := conn.Ping(r.Context()); err != nil {
 			logger.Error("error pinging database", zap.Error(err))
@@ -89,8 +96,7 @@ func main() {
   "mqttConnectionOpen": %v,
   "pgOk": %v
 }`, w1.NumWrites(), w2.NumWrites(), mqttClient.IsConnected(), mqttClient.IsConnectionOpen(), pgOk)
-	})
-	if err := http.ListenAndServe(":3002", router); err != nil {
-		logger.Error("error listening", zap.Error(err))
-	}
+	}))
+	logger.Info("starting http server", zap.String("addr", ":3011"))
+	router.Run(":3011")
 }

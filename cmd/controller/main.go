@@ -13,6 +13,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const ServiceName = "tracer-controller"
+
 func main() {
 	ctx := context.Background()
 
@@ -36,8 +38,8 @@ func main() {
 	// mqtt.DEBUG = log.New(os.Stdout, "", 0)
 	// mqtt.ERROR = log.New(os.Stdout, "", 0)
 	opts := mqtt.NewClientOptions().
-		AddBroker("tcp://localhost:1883").
-		SetClientID("tracer-controller").
+		AddBroker(cfg.MQTT.Broker).
+		SetClientID(ServiceName).
 		SetKeepAlive(2 * time.Second).
 		SetPingTimeout(1 * time.Second)
 

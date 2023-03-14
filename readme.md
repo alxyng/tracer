@@ -31,7 +31,7 @@ All services communicate using MQTT. At a minimum, this is required to run `trac
 
 `tracer-writer` consumes the topic `tracer/reading` and writes to PostgreSQL when a message is received. The schema for the database is attached at the bottom of this readme. For instructions on installing PostresSQL on Raspberry Pi, [click here](https://pimylifeup.com/raspberry-pi-postgresql/).
 
-The Grafana Dashboard pictured above is located in the root of the repo as [dashboard.json](dashboard.json). For instructions on installing Frafana on Raspberry Pi, [click here](https://grafana.com/tutorials/install-grafana-on-raspberry-pi/).
+The Grafana Dashboard pictured above is located in the root of the repo as [dashboard.json](dashboard.json). For instructions on installing Grafana on Raspberry Pi, [click here](https://grafana.com/tutorials/install-grafana-on-raspberry-pi/).
 
 ## Installing
 

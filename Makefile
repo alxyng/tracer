@@ -1,5 +1,5 @@
 GOBUILD=GOOS=linux GOARCH=arm64 go build
-RPI_ADDR=pi@192.168.1.104
+RPI_ADDR=bigpeach
 RPI_DIR=/home/pi/tracer
 
 all: build
