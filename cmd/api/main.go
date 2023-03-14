@@ -41,7 +41,7 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+	// router.Use(ginzap.Ginzap(logger, time.RFC3339, true))
 	router.Use(ginzap.RecoveryWithZap(logger, true))
 
 	transport := api.NewHTTPTransport(router, mqttClient, logger)
